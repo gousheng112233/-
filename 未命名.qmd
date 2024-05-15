@@ -1,0 +1,99 @@
+---
+title: "DDM模型演示"
+format: html
+code-fold: true
+css: style.css
+editor: visual
+---
+
+::: column-margin
+### **证据采样平均值：**
+
+被试每次采集证据的平均值， 反映了被试判断能力
+
+### **证据采样标准差：**
+
+被试每次采集证据的变异， 反映了被试判断能力
+
+### **决策边界：**
+
+被试做出判断所需要累积的证据， 反映了被试判断的谨慎程度
+
+### **起始点：**
+
+被试积累证据前的先验信念， 反映了被试判断的倾向性
+
+### **非决策时间：**
+
+被试每次开始决策前所需要的时间
+:::
+
+::: columns
+::: {.column width="65%"}
+```{ojs}
+viewof mean = Inputs.range([-5, 5], {step: 0.1, label: "证据采样平均值"})
+viewof std = Inputs.range([0, 5], {step: 0.1, label: "证据采样标准差"})
+viewof thre = Inputs.range([0, 10], {step: 1, label: "决策边界"})
+viewof initial = Inputs.range([-10, 10], {step: 1, label: "起始点"})
+viewof non_dt = Inputs.range([0, 2], {step: 0.1, label: "非决策时间"})
+```
+:::
+
+::: {.column width="35%"}
+::: {.image_container style="max-width: 500px;  max-height: 220px; overflow: auto;"}
+![](images/截屏2024-05-13%2018.26.59-04.png) ![](images/截屏2024-05-13%2016.59.33-06.png)
+:::
+:::
+:::
+
+```{ojs}
+//绘制DDM游走图
+Plot.plot({
+x: {
+domain: [0, 20]
+},
+y: {
+domain: [-10, 10]
+},
+marks: [
+Plot.line(counter, {x: (d, i) => i, y: d => d, stroke: "red"}),
+Plot.ruleY([thre], {stroke: "black"}),
+Plot.ruleY([-thre], {stroke: "black"})
+],
+axes: [
+{
+orient: "bottom",
+scale: "x",
+ticks: 0,
+labels: null
+},
+{
+orient: "left",
+scale: "y",
+ticks: 0,
+labels: null
+}
+]
+})
+
+```
+
+```{ojs}
+//定义采集函数
+function normalRandom(mean, std) {
+  const u = Math.random(); 
+  const v = Math.random();
+  
+  const z0 = Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  
+  return z0 * std + mean;
+}
+//进行证据采集
+viewof counter = Inputs.button([
+  
+    ["采集证据", value => value.concat(value.length ? value[value.length - 1] + normalRandom(mean, std) : normalRandom(mean, std))], 
+  ["重新采集", value => [initial]]
+  ],
+  {value: [initial]}
+)
+```
